@@ -1,0 +1,1842 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GBoS GEOAI | Nitrate Pulse – The Gambia</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+:root{
+ --bg:#100b24;
+ --panel:#1b1535;
+ --panel2:#241c43;
+ --line:#40365f;
+ --text:#f7f3ff;
+ --muted:#aaa1c4;
+ --teal:#27d7c1;
+ --yellow:#f4d34f;
+ --orange:#ff913f;
+ --red:#ff4e69;
+ --blue:#54a8ff;
+}
+
+*{
+ box-sizing:border-box;
+}
+
+html,body{
+ margin:0;
+ width:100%;
+ height:100%;
+ font-family:Inter,"Segoe UI",Arial,sans-serif;
+ background:var(--bg);
+ color:var(--text);
+}
+
+body{
+ overflow:hidden;
+}
+
+.app{
+ height:100vh;
+ display:grid;
+ grid-template-rows:auto minmax(0,1fr) auto auto;
+ gap:10px;
+ padding:12px;
+}
+
+/* HEADER */
+
+header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:15px;
+ padding:5px 8px;
+}
+
+.brand small{
+ color:var(--yellow);
+ font-size:10px;
+ font-weight:800;
+ letter-spacing:3px;
+}
+
+h1{
+ margin:4px 0;
+ font-size:clamp(25px,3vw,40px);
+ letter-spacing:-1.5px;
+}
+
+h1 span{
+ color:var(--teal);
+}
+
+.subtitle{
+ color:var(--muted);
+ font-size:12px;
+ line-height:1.5;
+}
+
+.header-right{
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap;
+}
+
+.pill{
+ background:var(--panel);
+ border:1px solid var(--line);
+ padding:8px 12px;
+ border-radius:20px;
+ font-size:10px;
+ color:#ddd6f4;
+}
+
+.pill strong{
+ color:var(--teal);
+}
+
+/* MAIN THREE COLUMN LAYOUT */
+
+.main{
+ min-height:0;
+ display:grid;
+ grid-template-columns:260px minmax(0,1fr) 280px;
+ gap:10px;
+}
+
+.panel{
+ min-height:0;
+ overflow-y:auto;
+ background:linear-gradient(155deg,var(--panel2),var(--panel));
+ border:1px solid var(--line);
+ border-radius:13px;
+ scrollbar-width:thin;
+ scrollbar-color:#51466e transparent;
+}
+
+.panel-section{
+ padding:14px;
+ border-bottom:1px solid rgba(170,162,196,.13);
+}
+
+.panel h3{
+ margin:0 0 12px;
+ font-size:11px;
+ letter-spacing:1.7px;
+ color:var(--yellow);
+ text-transform:uppercase;
+}
+
+label{
+ display:block;
+ margin:10px 0 5px;
+ color:var(--muted);
+ font-size:11px;
+}
+
+select,input,button{
+ font:inherit;
+}
+
+select,input[type=date]{
+ width:100%;
+ background:#100c24;
+ color:var(--text);
+ border:1px solid var(--line);
+ border-radius:7px;
+ padding:9px;
+ outline:none;
+}
+
+button{
+ background:#2b2250;
+ border:1px solid var(--line);
+ color:white;
+ border-radius:7px;
+ padding:9px 12px;
+ cursor:pointer;
+}
+
+button:hover{
+ border-color:var(--teal);
+}
+
+button.primary{
+ background:#087e78;
+ border-color:#20b9aa;
+ font-weight:700;
+}
+
+.row{
+ display:flex;
+ gap:7px;
+}
+
+.row>*{
+ flex:1;
+}
+
+.check{
+ display:flex;
+ align-items:center;
+ gap:8px;
+ margin:10px 0;
+ font-size:11px;
+ color:#ddd6f4;
+}
+
+.check input{
+ accent-color:var(--teal);
+}
+
+.note{
+ color:var(--muted);
+ font-size:10px;
+ line-height:1.55;
+}
+
+.metric{
+ display:flex;
+ justify-content:space-between;
+ gap:8px;
+ padding:9px 0;
+ border-bottom:1px solid rgba(170,162,196,.13);
+ font-size:11px;
+}
+
+.metric span{
+ color:var(--muted);
+}
+
+.metric b{
+ text-align:right;
+}
+
+/* MAP */
+
+.map-wrap{
+ position:relative;
+ min-height:0;
+ overflow:hidden;
+ border:1px solid var(--line);
+ border-radius:13px;
+ background:#17112c;
+}
+
+#map{
+ width:100%;
+ height:100%;
+ min-height:400px;
+ background:#17112c;
+}
+
+.map-title{
+ position:absolute;
+ z-index:500;
+ top:12px;
+ left:12px;
+ background:#160f2ddd;
+ border:1px solid var(--line);
+ border-radius:9px;
+ padding:10px 12px;
+ pointer-events:none;
+}
+
+.map-title b{
+ display:block;
+ font-size:12px;
+ letter-spacing:1px;
+}
+
+.map-title span{
+ color:var(--muted);
+ font-size:10px;
+}
+
+.map-status{
+ position:absolute;
+ z-index:500;
+ top:12px;
+ right:12px;
+ background:#160f2ddd;
+ border:1px solid var(--line);
+ border-radius:8px;
+ padding:8px 10px;
+ color:var(--teal);
+ font-size:10px;
+}
+
+.legend{
+ position:absolute;
+ z-index:500;
+ left:12px;
+ bottom:15px;
+ width:195px;
+ background:#160f2eeF;
+ border:1px solid var(--line);
+ border-radius:9px;
+ padding:11px;
+}
+
+.legend b{
+ font-size:10px;
+ letter-spacing:1px;
+}
+
+.gradient{
+ height:9px;
+ border-radius:5px;
+ margin:9px 0 6px;
+ background:linear-gradient(
+  90deg,
+  var(--teal),
+  var(--yellow),
+  var(--orange),
+  var(--red)
+ );
+}
+
+.legend-scale{
+ display:flex;
+ justify-content:space-between;
+ color:var(--muted);
+ font-size:9px;
+}
+
+/* ANALYTICS */
+
+.kpis{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:10px;
+}
+
+.kpi{
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:11px;
+ padding:12px 15px;
+ min-width:0;
+}
+
+.kpi .label{
+ color:var(--muted);
+ font-size:9px;
+ letter-spacing:1.4px;
+ text-transform:uppercase;
+}
+
+.kpi .value{
+ margin:5px 0;
+ font-size:clamp(20px,2.5vw,29px);
+ font-weight:800;
+}
+
+.kpi .detail{
+ color:var(--muted);
+ font-size:10px;
+}
+
+.chart{
+ height:105px;
+ display:flex;
+ align-items:end;
+ gap:5px;
+ padding:8px 2px 0;
+ border-bottom:1px solid var(--line);
+}
+
+.chart i{
+ flex:1;
+ min-width:4px;
+ background:linear-gradient(
+  0deg,
+  #148c85,
+  #f4d34f,
+  #ff654e
+ );
+ border-radius:3px 3px 0 0;
+}
+
+.chart-labels{
+ display:flex;
+ justify-content:space-between;
+ margin-top:5px;
+ color:var(--muted);
+ font-size:9px;
+}
+
+footer{
+ color:#9189ad;
+ font-size:9px;
+ line-height:1.5;
+ padding:0 4px;
+}
+
+/* LEAFLET */
+
+.leaflet-container{
+ font:12px Arial;
+}
+
+.leaflet-control-layers,
+.leaflet-bar a{
+ background:#211a3d!important;
+ color:#fff!important;
+ border-color:#51466e!important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip{
+ background:#211a3d;
+ color:#fff;
+}
+
+.leaflet-popup-content{
+ line-height:1.6;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1050px){
+ .main{
+  grid-template-columns:220px minmax(0,1fr);
+ }
+ .right{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+ }
+}
+
+@media(max-width:700px){
+ body{
+  overflow:auto;
+ }
+
+ .app{
+  height:auto;
+  min-height:100vh;
+  grid-template-rows:auto auto auto auto;
+ }
+
+ header{
+  align-items:flex-start;
+ }
+
+ .header-right{
+  display:none;
+ }
+
+ .main{
+  grid-template-columns:1fr;
+ }
+
+ .panel{
+  max-height:none;
+ }
+
+ .map-wrap{
+  height:65vh;
+  min-height:480px;
+ }
+
+ .right{
+  display:block;
+ }
+
+ .kpis{
+  grid-template-columns:1fr;
+ }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- =====================================================
+ HEADER
+===================================================== -->
+
+<header>
+
+ <div class="brand">
+
+  <small>GBoS GEOAI • WATER QUALITY INTELLIGENCE</small>
+
+  <h1>
+   Nitrate Pulse
+   <span>| The Gambia</span>
+  </h1>
+
+  <div class="subtitle">
+   Exploring river-network nitrate pressure, seasonal patterns
+   and water-quality monitoring priorities.
+  </div>
+
+ </div>
+
+ <div class="header-right">
+
+  <div class="pill">
+   COUNTRY <strong>THE GAMBIA</strong>
+  </div>
+
+  <div class="pill">
+   PLATFORM <strong>GEOAI</strong>
+  </div>
+
+  <div class="pill" id="datePill">
+   DATE —
+  </div>
+
+ </div>
+
+</header>
+
+
+<!-- =====================================================
+ MAIN THREE-COLUMN INTERFACE
+===================================================== -->
+
+<div class="main">
+
+
+<!-- =====================================================
+ LEFT PANEL: CONTROLS
+===================================================== -->
+
+<aside class="panel">
+
+ <div class="panel-section">
+
+  <h3>01 | Analysis controls</h3>
+
+  <label for="date">Reference date</label>
+
+  <input
+   type="date"
+   id="date"
+   value="2026-11-04"
+  >
+
+  <label for="season">Season</label>
+
+  <select id="season">
+   <option value="wet">Wet season (June–October)</option>
+   <option value="dry">Dry season (November–May)</option>
+  </select>
+
+  <label for="area">Geographical area</label>
+
+  <select id="area">
+
+   <option value="all">
+    The Gambia – National view
+   </option>
+
+   <option value="west">
+    Western / Greater Banjul
+   </option>
+
+   <option value="lower">
+    Lower River area
+   </option>
+
+   <option value="central">
+    Central River area
+   </option>
+
+   <option value="upper">
+    Upper River area
+   </option>
+
+  </select>
+
+  <label for="scenario">Screening scenario</label>
+
+  <select id="scenario">
+
+   <option value="baseline">
+    Baseline demonstration
+   </option>
+
+   <option value="rain">
+    Higher runoff pressure
+   </option>
+
+   <option value="low">
+    Lower runoff pressure
+   </option>
+
+  </select>
+
+  <div class="row" style="margin-top:13px">
+
+   <button class="primary" id="apply">
+    APPLY
+   </button>
+
+   <button id="reset">
+    RESET
+   </button>
+
+  </div>
+
+ </div>
+
+
+ <div class="panel-section">
+
+  <h3>02 | Map layers</h3>
+
+  <label class="check">
+   <input type="checkbox" id="riverToggle" checked>
+   River and stream network
+  </label>
+
+  <label class="check">
+   <input type="checkbox" id="indexToggle" checked>
+   Nitrate-pressure index
+  </label>
+
+  <label class="check">
+   <input type="checkbox" id="labelsToggle" checked>
+   River labels
+  </label>
+
+  <label class="check">
+   <input type="checkbox" id="boundaryToggle" checked>
+   Study-area boundary
+  </label>
+
+ </div>
+
+
+ <div class="panel-section">
+
+  <h3>03 | Nitrate-load legend</h3>
+
+  <div class="note">
+   The coloured lines represent a synthetic relative index
+   for demonstrating the dashboard. They do not represent
+   measured nitrate concentrations.
+  </div>
+
+  <div class="gradient"></div>
+
+  <div class="legend-scale">
+   <span>Low</span>
+   <span>Usual</span>
+   <span>High</span>
+  </div>
+
+  <div class="note" style="margin-top:10px">
+   Operational nitrate load requires concentration and
+   river discharge measurements.
+  </div>
+
+ </div>
+
+
+ <div class="panel-section">
+
+  <h3>04 | Data availability</h3>
+
+  <div class="metric">
+   <span>Hydrography</span>
+   <b id="hydroStatus">Loading</b>
+  </div>
+
+  <div class="metric">
+   <span>Nitrate observations</span>
+   <b>Not connected</b>
+  </div>
+
+  <div class="metric">
+   <span>Discharge measurements</span>
+   <b>Not connected</b>
+  </div>
+
+  <div class="metric">
+   <span>Index type</span>
+   <b>Synthetic demo</b>
+  </div>
+
+ </div>
+
+
+ <div class="panel-section">
+
+  <h3>05 | Project description</h3>
+
+  <div class="note">
+
+   Nitrate Pulse – The Gambia is a geospatial monitoring
+   dashboard concept designed to explore the spatial and
+   seasonal dimensions of river water-quality pressure.
+
+   <br><br>
+
+   The application provides an interactive view of river
+   and stream networks, geographical filters, a relative
+   screening index and analytical summaries.
+
+   <br><br>
+
+   The framework can be extended using laboratory nitrate
+   observations, river discharge measurements, rainfall,
+   land use, agricultural activity and settlement data.
+
+  </div>
+
+ </div>
+
+</aside>
+
+
+<!-- =====================================================
+ CENTRE PANEL: MAP
+===================================================== -->
+
+<section class="map-wrap">
+
+ <div id="map"></div>
+
+ <div class="map-title">
+
+  <b>RIVER NETWORK • THE GAMBIA</b>
+
+  <span>
+   Interactive water-quality screening
+  </span>
+
+ </div>
+
+ <div class="map-status" id="mapStatus">
+  Preparing map...
+ </div>
+
+ <div class="legend">
+
+  <b>ILLUSTRATIVE NITRATE PRESSURE</b>
+
+  <div class="gradient"></div>
+
+  <div class="legend-scale">
+   <span>Low</span>
+   <span>Moderate</span>
+   <span>High</span>
+  </div>
+
+ </div>
+
+</section>
+
+
+<!-- =====================================================
+ RIGHT PANEL: ANALYTICS
+===================================================== -->
+
+<aside class="panel right">
+
+ <div class="panel-section">
+
+  <h3>06 | Screening summary</h3>
+
+  <div class="metric">
+   <span>Mapped river features</span>
+   <b id="featureCount">—</b>
+  </div>
+
+  <div class="metric">
+   <span>Mean index</span>
+   <b id="meanIndex">—</b>
+  </div>
+
+  <div class="metric">
+   <span>High-index segments</span>
+   <b id="highCount">—</b>
+  </div>
+
+  <div class="metric">
+   <span>Season</span>
+   <b id="seasonText">—</b>
+  </div>
+
+ </div>
+
+
+ <div class="panel-section">
+
+  <h3>07 | Relative index profile</h3>
+
+  <div class="chart" id="chart"></div>
+
+  <div class="chart-labels">
+   <span>Lower</span>
+   <span>Relative index</span>
+   <span>Higher</span>
+  </div>
+
+  <div class="note" style="margin-top:10px">
+   The distribution is calculated from the demonstration
+   index and is not a measured water-quality distribution.
+  </div>
+
+ </div>
+
+
+ <div class="panel-section">
+
+  <h3>08 | Highest-index river features</h3>
+
+  <div id="hotspots" class="note">
+   Waiting for river network...
+  </div>
+
+ </div>
+
+
+ <div class="panel-section">
+
+  <h3>09 | Interpretation</h3>
+
+  <div class="note">
+
+   <b>Potential nitrate sources</b><br>
+   Agricultural fertiliser, livestock waste, wastewater
+   discharge and other nutrient inputs.
+
+   <br><br>
+
+   <b>Potential environmental drivers</b><br>
+   Rainfall runoff, river discharge, soil conditions,
+   settlement distribution and land use.
+
+   <br><br>
+
+   <b>Operational nitrate-load method</b><br>
+   Nitrate load is estimated from nitrate concentration
+   multiplied by river discharge, with consistent units
+   and time intervals.
+
+   <br><br>
+
+   <b>Validation</b><br>
+   Water samples and laboratory analysis are required
+   to calibrate and validate nitrate concentration estimates.
+
+  </div>
+
+ </div>
+
+
+ <div class="panel-section">
+
+  <h3>10 | Credits</h3>
+
+  <div class="note">
+   Produced by Ansu Singhateh<br>
+   GIS Analyst<br>
+   GIS / Cartography Unit<br>
+   Gambia Bureau of Statistics<br><br>
+   GBoS GEOAI • Research and educational use
+  </div>
+
+ </div>
+
+</aside>
+
+</div>
+
+
+<!-- =====================================================
+ BOTTOM KPI CARDS
+===================================================== -->
+
+<div class="kpis">
+
+ <div class="kpi">
+
+  <div class="label">
+   River features loaded
+  </div>
+
+  <div class="value" id="kpiRivers">
+   —
+  </div>
+
+  <div class="detail">
+   OpenStreetMap river and stream features
+  </div>
+
+ </div>
+
+
+ <div class="kpi">
+
+  <div class="label">
+   Highest demonstration index
+  </div>
+
+  <div class="value" id="kpiPeak">
+   —
+  </div>
+
+  <div class="detail">
+   Relative synthetic score from 0 to 100
+  </div>
+
+ </div>
+
+
+ <div class="kpi">
+
+  <div class="label">
+   Monitoring status
+  </div>
+
+  <div class="value" style="font-size:20px">
+   DATA REQUIRED
+  </div>
+
+  <div class="detail">
+   Verified nitrate observations are not connected
+  </div>
+
+ </div>
+
+</div>
+
+
+<!-- =====================================================
+ FOOTER
+===================================================== -->
+
+<footer>
+
+ <b>Data sources:</b>
+ OpenStreetMap contributors – hydrography and geographical
+ features; CARTO basemaps; Esri World Imagery.
+
+ <br>
+
+ <b>Disclaimer:</b>
+ This prototype uses a synthetic screening index for
+ demonstration only. It does not show measured nitrate
+ concentrations, daily nitrate loads, regulatory
+ compliance or official water-quality statistics.
+
+</footer>
+
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<script>
+
+/* =========================================================
+ 1. MAP INITIALISATION
+========================================================= */
+
+const map = L.map('map',{
+ zoomControl:true,
+ preferCanvas:true
+}).setView([13.45,-15.50],7);
+
+
+/* =========================================================
+ 2. BASEMAPS
+========================================================= */
+
+const baseLayers = {
+
+ "Dark":L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  {
+   attribution:'© OpenStreetMap © CARTO',
+   subdomains:'abcd',
+   maxZoom:20
+  }
+ ),
+
+ "OpenStreetMap":L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+   attribution:'© OpenStreetMap contributors',
+   maxZoom:19
+  }
+ ),
+
+ "Satellite":L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {
+   attribution:'Tiles © Esri',
+   maxZoom:19
+  }
+ ),
+
+ "Light":L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  {
+   attribution:'© OpenStreetMap © CARTO',
+   subdomains:'abcd',
+   maxZoom:20
+  }
+ )
+
+};
+
+baseLayers.Dark.addTo(map);
+
+L.control.layers(
+ baseLayers,
+ {},
+ {
+  position:'topright',
+  collapsed:true
+ }
+).addTo(map);
+
+L.control.scale({
+ imperial:false
+}).addTo(map);
+
+
+/* =========================================================
+ 3. MAP LAYERS
+========================================================= */
+
+const riverLayer = L.layerGroup().addTo(map);
+
+const indexLayer = L.layerGroup().addTo(map);
+
+const labelLayer = L.layerGroup().addTo(map);
+
+
+/* Approximate national display extent.
+   This is not an official administrative polygon. */
+
+const studyBounds = L.rectangle(
+ [[13.0,-16.9],[13.9,-13.7]],
+ {
+  color:'#d9c9ff',
+  weight:1.5,
+  fill:false,
+  dashArray:'5 5'
+ }
+).addTo(map);
+
+
+/* =========================================================
+ 4. APPLICATION STATE
+========================================================= */
+
+let riverFeatures = [];
+
+let currentFeatures = [];
+
+let syntheticValues = [];
+
+
+/* =========================================================
+ 5. DETERMINISTIC DEMONSTRATION INDEX
+========================================================= */
+
+function hashValue(str){
+
+ let h=2166136261;
+
+ for(let i=0;i<str.length;i++){
+
+  h ^= str.charCodeAt(i);
+
+  h = Math.imul(h,16777619);
+
+ }
+
+ return (h>>>0)/4294967295;
+
+}
+
+
+function seasonFromDate(dateString){
+
+ const month = new Date(
+  dateString+'T00:00:00'
+ ).getMonth()+1;
+
+ return month>=6 && month<=10
+  ? 'wet'
+  : 'dry';
+
+}
+
+
+function scoreFeature(feature,scenario,season){
+
+ const properties=feature.properties||{};
+
+ const key=String(
+  properties.id ||
+  properties.name ||
+  JSON.stringify(feature.geometry).slice(0,100)
+ );
+
+ let value=22+hashValue(key)*62;
+
+ if(season==='wet')value+=7;
+
+ if(scenario==='rain')value+=13;
+
+ if(scenario==='low')value-=12;
+
+ return Math.max(
+  5,
+  Math.min(98,Math.round(value))
+ );
+
+}
+
+
+function indexColour(value){
+
+ if(value<35)return '#27d7c1';
+
+ if(value<55)return '#f4d34f';
+
+ if(value<75)return '#ff913f';
+
+ return '#ff4e69';
+
+}
+
+
+/* =========================================================
+ 6. FEATURE HELPERS
+========================================================= */
+
+function escapeHTML(value){
+
+ return String(value).replace(
+  /[&<>"']/g,
+  character=>({
+   '&':'&amp;',
+   '<':'&lt;',
+   '>':'&gt;',
+   '"':'&quot;',
+   "'":'&#39;'
+  }[character])
+ );
+
+}
+
+
+function featureName(feature,index){
+
+ const properties=feature.properties||{};
+
+ return properties.name ||
+  (properties.waterway||'River/stream')+' '+(index+1);
+
+}
+
+
+function featureCoordinates(feature){
+
+ if(!feature.geometry)return [];
+
+ const coordinates=feature.geometry.coordinates;
+
+ const lines=[];
+
+ if(feature.geometry.type==='LineString'){
+
+  lines.push(coordinates);
+
+ }
+
+ else if(feature.geometry.type==='MultiLineString'){
+
+  coordinates.forEach(line=>lines.push(line));
+
+ }
+
+ return lines;
+
+}
+
+
+/* =========================================================
+ 7. GEOGRAPHICAL FILTERS
+========================================================= */
+
+/* These are approximate display filters, not official
+   regional boundaries. */
+
+const areaRanges={
+
+ west:[13.25,-17.0,13.65,-15.0],
+
+ central:[13.25,-15.6,13.65,-14.5],
+
+ upper:[13.35,-14.7,13.9,-13.6],
+
+ lower:[13.0,-16.0,13.45,-14.8]
+
+};
+
+
+function featureIntersectsRange(feature,range){
+
+ const lines=featureCoordinates(feature);
+
+ return lines.some(line=>line.some(point=>{
+
+  const lon=point[0];
+
+  const lat=point[1];
+
+  return lat>=range[0] &&
+   lon>=range[1] &&
+   lat<=range[2] &&
+   lon<=range[3];
+
+ }));
+
+}
+
+
+function filterByArea(features,area){
+
+ if(area==='all')return features;
+
+ const range=areaRanges[area];
+
+ if(!range)return features;
+
+ return features.filter(feature=>
+  featureIntersectsRange(feature,range)
+ );
+
+}
+
+
+/* =========================================================
+ 8. RENDER MAP FEATURES
+========================================================= */
+
+function drawFeatures(){
+
+ riverLayer.clearLayers();
+
+ indexLayer.clearLayers();
+
+ labelLayer.clearLayers();
+
+
+ const season=document.getElementById('season').value;
+
+ const scenario=document.getElementById('scenario').value;
+
+ const area=document.getElementById('area').value;
+
+
+ currentFeatures=filterByArea(
+  riverFeatures,
+  area
+ );
+
+ syntheticValues=[];
+
+
+ currentFeatures.forEach((feature,index)=>{
+
+  const value=scoreFeature(
+   feature,
+   scenario,
+   season
+  );
+
+  syntheticValues.push(value);
+
+  const name=featureName(feature,index);
+
+  const lines=featureCoordinates(feature);
+
+
+  lines.forEach(line=>{
+
+   const latlngs=line.map(point=>[
+    point[1],
+    point[0]
+   ]);
+
+   if(latlngs.length<2)return;
+
+
+   /* Background hydrography */
+
+   L.polyline(
+    latlngs,
+    {
+     color:'#786c99',
+     weight:2,
+     opacity:0.55
+    }
+   ).addTo(riverLayer);
+
+
+   /* Coloured demonstration index */
+
+   L.polyline(
+    latlngs,
+    {
+     color:indexColour(value),
+     weight:3.5,
+     opacity:0.94
+    }
+   )
+   .bindPopup(`
+    <div style="min-width:180px">
+
+     <b>${escapeHTML(name)}</b>
+
+     <hr>
+
+     Waterway:
+     ${escapeHTML(
+      feature.properties.waterway||'Not specified'
+     )}
+
+     <br>
+
+     Demonstration index:
+     <b style="color:${indexColour(value)}">
+      ${value}/100
+     </b>
+
+     <br><br>
+
+     <small>
+      Synthetic demonstration value.
+      Not a measured nitrate result.
+     </small>
+
+    </div>
+   `)
+   .addTo(indexLayer);
+
+  });
+
+
+  /* River name labels */
+
+  if(feature.properties&&feature.properties.name){
+
+   const firstLine=lines[0];
+
+   if(firstLine&&firstLine.length){
+
+    const point=firstLine[
+     Math.floor(firstLine.length/2)
+    ];
+
+    L.circleMarker(
+     [point[1],point[0]],
+     {
+      radius:2.5,
+      color:'#ffffff',
+      weight:1,
+      fillColor:'#ffffff',
+      fillOpacity:0.9
+     }
+    )
+    .bindTooltip(
+     escapeHTML(feature.properties.name)
+    )
+    .addTo(labelLayer);
+
+   }
+
+  }
+
+ });
+
+
+ updateDashboard();
+
+ setLayerVisibility();
+
+}
+
+
+/* =========================================================
+ 9. UPDATE ANALYTICS
+========================================================= */
+
+function updateDashboard(){
+
+ const values=syntheticValues;
+
+ const count=values.length;
+
+ const mean=count
+  ? values.reduce((a,b)=>a+b,0)/count
+  : 0;
+
+ const high=values.filter(v=>v>=75).length;
+
+ const peak=count?Math.max(...values):0;
+
+
+ document.getElementById('featureCount').textContent=
+  count.toLocaleString();
+
+ document.getElementById('meanIndex').textContent=
+  count?mean.toFixed(1)+'/100':'N/A';
+
+ document.getElementById('highCount').textContent=
+  high.toLocaleString();
+
+ document.getElementById('kpiRivers').textContent=
+  count.toLocaleString();
+
+ document.getElementById('kpiPeak').textContent=
+  count?peak+'/100':'N/A';
+
+
+ document.getElementById('seasonText').textContent=
+  document.getElementById('season').value==='wet'
+   ? 'Wet season'
+   : 'Dry season';
+
+
+ /* Hotspots */
+
+ const ranked=currentFeatures.map((feature,index)=>({
+
+  name:featureName(feature,index),
+
+  value:values[index]
+
+ }))
+ .sort((a,b)=>b.value-a.value)
+ .slice(0,5);
+
+
+ document.getElementById('hotspots').innerHTML=
+  ranked.length
+   ? ranked.map(item=>`
+
+    <div class="metric">
+
+     <span>${escapeHTML(item.name)}</span>
+
+     <b style="color:${indexColour(item.value)}">
+      ${item.value}/100
+     </b>
+
+    </div>
+
+   `).join('')
+   : 'No river features in selected extent.';
+
+
+ /* Distribution chart */
+
+ const chart=document.getElementById('chart');
+
+ chart.innerHTML='';
+
+ const bins=Array(12).fill(0);
+
+ values.forEach(value=>{
+
+  const bin=Math.min(
+   11,
+   Math.floor(value/100*12)
+  );
+
+  bins[bin]++;
+
+ });
+
+ const maximum=Math.max(1,...bins);
+
+ bins.forEach(number=>{
+
+  const bar=document.createElement('i');
+
+  bar.style.height=
+   (10+number/maximum*85)+'%';
+
+  bar.title=number+' river feature(s)';
+
+  chart.appendChild(bar);
+
+ });
+
+}
+
+
+/* =========================================================
+ 10. LAYER VISIBILITY
+========================================================= */
+
+function setLayerVisibility(){
+
+ const settings=[
+
+  ['riverToggle',riverLayer],
+
+  ['indexToggle',indexLayer],
+
+  ['labelsToggle',labelLayer],
+
+  ['boundaryToggle',studyBounds]
+
+ ];
+
+ settings.forEach(([id,layer])=>{
+
+  const checked=document.getElementById(id).checked;
+
+  if(checked){
+
+   if(!map.hasLayer(layer))map.addLayer(layer);
+
+  }else{
+
+   if(map.hasLayer(layer))map.removeLayer(layer);
+
+  }
+
+ });
+
+}
+
+
+/* =========================================================
+ 11. LOAD RIVER NETWORK FROM OVERPASS
+========================================================= */
+
+async function loadHydrography(){
+
+ const status=document.getElementById('mapStatus');
+
+ const hydroStatus=document.getElementById('hydroStatus');
+
+
+ status.textContent='Loading river network...';
+
+ hydroStatus.textContent='Loading...';
+
+
+ /* Approximate bounding box around The Gambia */
+
+ const bbox='13.0,-16.9,13.9,-13.7';
+
+
+ const query=`
+
+  [out:json][timeout:45];
+
+  (
+
+   way["waterway"~"river|stream|canal"](${bbox});
+
+  );
+
+  out geom;
+
+ `;
+
+
+ const endpoints=[
+
+  'https://overpass-api.de/api/interpreter',
+
+  'https://overpass.kumi.systems/api/interpreter'
+
+ ];
+
+
+ let data=null;
+
+ let lastError=null;
+
+
+ for(const endpoint of endpoints){
+
+  try{
+
+   const response=await fetch(
+
+    endpoint,
+
+    {
+
+     method:'POST',
+
+     headers:{
+
+      'Content-Type':
+       'application/x-www-form-urlencoded;charset=UTF-8'
+
+     },
+
+     body:'data='+encodeURIComponent(query)
+
+    }
+
+   );
+
+
+   if(!response.ok){
+
+    throw new Error('HTTP '+response.status);
+
+   }
+
+
+   data=await response.json();
+
+   break;
+
+  }
+
+  catch(error){
+
+   lastError=error;
+
+  }
+
+ }
+
+
+ if(!data){
+
+  hydroStatus.textContent='Unavailable';
+
+  status.textContent='Hydrography service unavailable';
+
+  document.getElementById('hotspots').textContent=
+   'River data could not be retrieved. Check your internet connection and try again.';
+
+  console.warn(lastError);
+
+  return;
+
+ }
+
+
+ riverFeatures=data.elements
+
+  .filter(element=>
+
+   element.type==='way' &&
+
+   element.geometry &&
+
+   element.geometry.length>1
+
+  )
+
+  .map(element=>({
+
+   type:'Feature',
+
+   properties:{
+
+    id:element.id,
+
+    name:element.tags&&element.tags.name,
+
+    waterway:element.tags&&element.tags.waterway
+
+   },
+
+   geometry:{
+
+    type:'LineString',
+
+    coordinates:element.geometry.map(point=>[
+     point.lon,
+     point.lat
+    ])
+
+   }
+
+  }));
+
+
+ hydroStatus.textContent=
+  riverFeatures.length.toLocaleString()+' features';
+
+
+ status.textContent='River network loaded';
+
+
+ drawFeatures();
+
+}
+
+
+/* =========================================================
+ 12. APPLY FILTERS
+========================================================= */
+
+document.getElementById('apply').addEventListener(
+ 'click',
+ function(){
+
+  const date=document.getElementById('date').value;
+
+  if(date){
+
+   document.getElementById('season').value=
+    seasonFromDate(date);
+
+  }
+
+  document.getElementById('datePill').textContent=
+   'DATE '+(date||'—');
+
+  drawFeatures();
+
+ }
+);
+
+
+/* =========================================================
+ 13. RESET
+========================================================= */
+
+document.getElementById('reset').addEventListener(
+ 'click',
+ function(){
+
+  document.getElementById('date').value='2026-11-04';
+
+  document.getElementById('season').value='dry';
+
+  document.getElementById('area').value='all';
+
+  document.getElementById('scenario').value='baseline';
+
+
+  [
+
+   'riverToggle',
+
+   'indexToggle',
+
+   'labelsToggle',
+
+   'boundaryToggle'
+
+  ].forEach(id=>{
+
+   document.getElementById(id).checked=true;
+
+  });
+
+
+  document.getElementById('datePill').textContent=
+   'DATE 2026-11-04';
+
+
+  map.setView([13.45,-15.50],7);
+
+  drawFeatures();
+
+ }
+);
+
+
+/* =========================================================
+ 14. EVENT LISTENERS
+========================================================= */
+
+[
+
+ 'riverToggle',
+
+ 'indexToggle',
+
+ 'labelsToggle',
+
+ 'boundaryToggle'
+
+].forEach(id=>{
+
+ document.getElementById(id).addEventListener(
+  'change',
+  setLayerVisibility
+ );
+
+});
+
+
+document.getElementById('date').addEventListener(
+ 'change',
+ function(event){
+
+  if(event.target.value){
+
+   document.getElementById('datePill').textContent=
+    'DATE '+event.target.value;
+
+  }
+
+ }
+);
+
+
+/* =========================================================
+ 15. INITIALISE
+========================================================= */
+
+document.getElementById('season').value=
+ seasonFromDate(
+  document.getElementById('date').value
+ );
+
+document.getElementById('datePill').textContent=
+ 'DATE '+document.getElementById('date').value;
+
+
+map.fitBounds([
+ [13.0,-16.9],
+ [13.9,-13.7]
+]);
+
+
+loadHydrography();
+
+
+console.log(
+ 'GBoS GEOAI | Nitrate Pulse – The Gambia'
+);
+
+console.log(
+ 'Demonstration interface initialised.'
+);
+
+</script>
+
+</body>
+</html>
